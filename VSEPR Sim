@@ -1,0 +1,147 @@
+int bonds=4;
+int free=2;
+
+int n=bonds+free;
+
+float[][] pos;
+float[][] vel;
+float[]   acc;
+float[] charge;
+float[] mass;
+float[] blen;
+float[] center={400,400,400};
+float t=1;
+float friction=.99;
+boolean wobble=false;
+
+float d;
+int i;
+int j;
+int k;
+
+void setup(){
+  size(800,800,P3D);
+  noFill();
+  pos=new float[n][3];
+  vel=new float[n][3];
+  acc=new float[3];
+  charge=new float[n];
+  mass=new float[n];
+  blen=new float[n];
+  for (i=0; i<n; i++){
+    pos[i][0]=random(width);
+    pos[i][1]=random(height);
+    pos[i][2]=random(0,800);
+    charge[i]=i<bonds?-6:-6;
+    mass[i]=5000;
+    blen[i]=i<bonds?100:40;
+    for (j=0; j<3; j++){
+      vel[i][j]=random(-5,5);
+    }
+  }
+}
+
+void keyPressed(){
+  if (key=='r'){
+    for (i=0; i<n; i++){
+      pos[i][0]=random(width);
+      pos[i][1]=random(height);
+      pos[i][2]=random(0,800);
+      //print(charge[i]);
+      for (j=0; j<3; j++){
+        vel[i][j]=random(-5,5);
+      }
+    }
+  }
+  if (key=='w'){
+    wobble=!wobble;
+  }
+}
+
+void draw(){
+  
+  translate(400,400,-400);
+  scale(3);
+  translate(-400,-400,400);
+  
+  background(129);
+  pushMatrix();
+  translate(400,400,-400);
+  rotateY(mouseX*2*PI/width);
+  rotateX(mouseY*2*PI/height);
+  stroke(0,0,0);
+  box(800);
+  popMatrix();
+  for (i=0; i<n; i++){
+    for (j=0; j<n; j++){
+      d=dist(pos[i][0],pos[i][1],pos[i][2],pos[j][0],pos[j][1],pos[j][2])/100;
+      if (i!=j){
+        for (k=0; k<3; k++){
+          acc[k]+=charge[i]*charge[j]/mass[i]*(pos[i][k]-pos[j][k])/pow(d,3);
+        }
+      }
+    }
+    for (k=0; k<3; k++){
+      vel[i][k]+=t*acc[k];
+      //if (abs(vel[i][k])>10){
+        vel[i][k]*=friction;
+      //}
+      acc[k]=0;
+    }
+    d=(vel[i][0]*(pos[i][0]-center[0])+vel[i][1]*(pos[i][1]-center[1])+vel[i][2]*(pos[i][2]-center[2]));
+    for (k=0; k<3; k++){
+      
+      /*print(vel[i][k]);
+      print("     ");
+      print((pos[i][k]-center[k]));
+      print("     ");
+      print(d);
+      print("     ");
+      println(dist(pos[i][0],pos[i][1],pos[i][2],center[0],center[1],center[2]));
+      */vel[i][k]-=d*(pos[i][k]-center[k])/pow(dist(pos[i][0],pos[i][1],pos[i][2],center[0],center[1],center[2]),2);
+    }
+  }
+  
+  for (i=0; i<n; i++){
+    for (k=0; k<3; k++){
+      pos[i][k]+=t*vel[i][k];
+      //pos[i][k]=((pos[i][k]%800)+800)%800;
+    }
+    d=dist(pos[i][0],pos[i][1],pos[i][2],center[0],center[1],center[2]);
+    for (k=0; k<3; k++){
+      pos[i][k]=(pos[i][k]-center[k])/d*blen[i]+center[k];
+      if (wobble){pos[i][k]+=randomGaussian()*2;}
+    }
+    //pos[i][2]=0;
+    pushMatrix();
+    
+    translate(center[0],center[1],-center[2]);
+    rotateY(mouseX*2*PI/width);
+    rotateX(mouseY*2*PI/height);
+    translate(-center[0],-center[1],center[2]);
+    //if (i<bonds){
+      stroke(255,0,0);
+      line(pos[i][0],pos[i][1],-pos[i][2],center[0],center[1],-center[2]);
+      stroke(0,0,0);
+      translate(pos[i][0],pos[i][1],-pos[i][2]);
+    //}
+    //else{
+    //  translate((pos[i][0]-center[0])/blen[i]*(25+mass[i]/500)+center[0],(pos[i][1]-center[1])/blen[i]*(25+mass[i]/500)+center[1],-((pos[i][2]-center[2])/blen[i]*(25+mass[i]/500)+center[2]));
+    //}
+    stroke(i<bonds?0:255,0,0);
+    sphere(mass[i]/500);
+    popMatrix();
+  }
+  pushMatrix();
+  
+  translate(400,400,-400);
+  rotateY(mouseX*2*PI/width);
+  rotateX(mouseY*2*PI/height);
+  translate(-400,-400,400);
+  translate(center[0],center[1],-center[2]);
+  stroke(0,255,0);
+  fill(0,255,0);
+  sphere(25);
+  noFill();
+  popMatrix();
+}
