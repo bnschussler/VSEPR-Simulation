@@ -32,9 +32,9 @@ void setup(){
     pos[i][0]=random(width);
     pos[i][1]=random(height);
     pos[i][2]=random(0,800);
-    charge[i]=i<bonds?-6:-6;
+    charge[i]=i<bonds?-6:-7;
     mass[i]=5000;
-    blen[i]=i<bonds?100:40;
+    blen[i]=i<bonds?80:40;
     for (j=0; j<3; j++){
       vel[i][j]=random(-5,5);
     }
